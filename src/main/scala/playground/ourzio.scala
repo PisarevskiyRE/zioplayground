@@ -3,26 +3,44 @@ package playground
 
 object ourzio:
 
-  final case class ZIO[A](think: () => A):
-    def flatMap[B](azb: A => ZIO[B]): ZIO[B] =
-      ZIO.succeed{
-        val a = think()
-        val zb = azb(a)
-        val b = zb.think()
-        b
+  final case class ZIO[+E, +A](thunk: () => Either[E, A]):
+    def flatMap[E1 >: E, B](azb: A => ZIO[E1, B]): ZIO[E1, B] =
+      ZIO{ () =>
+        val errorOrA = thunk()
+
+        val zErrorOrB = errorOrA match
+          case Right(a) => azb(a)
+          case Left(e) => ZIO.fail(e)
+
+        val errorOrB = zErrorOrB.thunk()
+        errorOrB
       }
 
-    def map[B](ab: A => B): ZIO[B] =
-      ZIO.succeed {
-        val a = think()
-        val b = ab(a)
-        b
+    def map[B](ab: A => B): ZIO[E, B] =
+      ZIO{ () =>
+        val errorOrA = thunk()
+        val errorOrB = errorOrA match
+          case Right(a) => Right(ab(a))
+          case Left(e) => Left(e)
+
+        errorOrB
       }
+
   end ZIO
 
   object ZIO:
-    def succeed[A](a: => A): ZIO[A] =
-      ZIO(() => a)
+    def succeed[A](a: => A): ZIO[Nothing, A] =
+      ZIO(() => Right(a))
+
+    def fail[E](e: => E): ZIO[E, Nothing] =
+      ZIO(() => Left(e))
+
+    def effect[A](a: => A): ZIO[Throwable, A] =
+      ZIO { () =>
+        try Right(a)
+        catch Left(_)
+      }
+
 
   object console:
     def putStrLn(line: => String) =
@@ -34,6 +52,6 @@ object ourzio:
 
   object Runtime:
     object default:
-      def unsafeRunSync[A](zio: => ZIO[A]): A =
-        zio.think()
+      def unsafeRunSync[E, A](zio: => ZIO[E, A]): Either[E, A] =
+        zio.thunk()
 
