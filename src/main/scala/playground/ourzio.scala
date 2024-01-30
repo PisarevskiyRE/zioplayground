@@ -8,6 +8,7 @@ object ourzio:
       ZIO{ () =>
         val errorOrA = thunk()
 
+        //val zErrorOrB = errorOrA.fold(ZIO.fail, azb)
         val zErrorOrB = errorOrA match
           case Right(a) => azb(a)
           case Left(e) => ZIO.fail(e)
@@ -24,6 +25,31 @@ object ourzio:
           case Left(e) => Left(e)
 
         errorOrB
+      }
+
+    def catchAll[E2, A1 >: A](h: E =>ZIO[E2, A1]): ZIO[E2, A1] =
+      ZIO { () =>
+        val errorOrA = thunk()
+
+        //val zErrorOrB = errorOrA.fold(h, ZIO.succeed)
+
+        val zErrorOrA1 = errorOrA match
+          case Right(a) => ZIO.succeed(a)
+          case Left(e) => h(e)
+
+        val errorOrA1 = zErrorOrA1.thunk()
+        errorOrA1
+      }
+
+
+    def mapError[E2](h: E => E2): ZIO[E2, A] =
+      ZIO { () =>
+        val errorOrA = thunk()
+        val error2OrB = errorOrA match
+          case Right(a) => Right(a)
+          case Left(e) => Left(h(e))
+
+        error2OrB
       }
 
   end ZIO

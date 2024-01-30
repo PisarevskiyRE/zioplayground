@@ -16,7 +16,9 @@ object Main extends scala.App:
       name <- ZIO.succeed("Roma")
     _ <- console.putStrLn(s"Hello $name")
 
-    _ <- ZIO.effect(throw RuntimeException( "boom"))
+    _ <- ZIO
+      .effect(throw RuntimeException( "boom"))
+      .catchAll( _ => ZIO.succeed("Шучу"))
 
     _ <- console.putStrLn("-" * 100)
   yield ())
