@@ -3,12 +3,11 @@ package playground
 
 object ourzio:
 
-  final case class ZIO[+E, +A](thunk: () => Either[E, A]):
+  final class ZIO[+E, +A](val thunk: () => Either[E, A]):
     def flatMap[E1 >: E, B](azb: A => ZIO[E1, B]): ZIO[E1, B] =
       ZIO{ () =>
         val errorOrA = thunk()
 
-        //val zErrorOrB = errorOrA.fold(ZIO.fail, azb)
         val zErrorOrB = errorOrA match
           case Right(a) => azb(a)
           case Left(e) => ZIO.fail(e)
