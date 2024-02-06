@@ -1,12 +1,9 @@
 package monads
 
 import scala.annotation.tailrec
-import fplibrary.*
 
-object Program:
-  
-
-  def createDescription(args: Array[String]): Description[Unit] = Description.create {
+object OriginalProgram:
+  def run(args: Array[String]): Unit =
     display(hyphens)
 
     display(question)
@@ -21,8 +18,6 @@ object Program:
     display(hyphens)
 
 
-  }
-
 
   private val hyphens: String =
     "-" * 50
@@ -34,7 +29,7 @@ object Program:
     println(input)
 
   private def promt(): String = "5"
-    //io.StdIn.readLine
+  //io.StdIn.readLine
 
   private def convertStringToInt(input: String): Int =
     input.toInt
@@ -42,12 +37,12 @@ object Program:
   private def ensureAmountIsPositive(amount: Int): Int =
     if (amount < 1) 1
     else amount
-    
+
   @tailrec
   private def round(amount: Int ): Int =
     if (isDivisibleByHundred(amount)) amount
     else round(amount + 1)
-  
+
   private def isDivisibleByHundred(amount: Int): Boolean =
     amount % 100 == 0
 
