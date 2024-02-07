@@ -6,21 +6,19 @@ import scala.annotation.tailrec
 
 object PointFreeProgram:
 
-
-  def createDescription(args: Array[String]): Description[Unit] =
-    Description.createyou
-      display(
-        createMessage(
-          round(
-            ensureAmountIsPositive(
-              convertStringToInt(
-                prompt(
-                  display(
-                    question(
-                      display(
-                        hyphens(
-                          args
-                        )
+  lazy val createDescription:Array[String] => Description[Unit] = args =>
+    Description.create(
+    display(
+      createMessage(
+        round(
+          ensureAmountIsPositive(
+            convertStringToInt(
+              prompt(
+                display(
+                  question(
+                    display(
+                      hyphens(
+                        args
                       )
                     )
                   )
@@ -31,6 +29,8 @@ object PointFreeProgram:
         )
       )
     )
+    )
+   
 
 
   private def hyphens(input: Any): String =
