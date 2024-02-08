@@ -1,66 +1,84 @@
 package monads
 
+
 import fplibrary.*
+import fplibrary.PointFree.{InfixNotationForPointFree, InfixNotationForPointFreeKleisli}
 
 import scala.annotation.tailrec
 
 object PointFreeProgram:
 
-  lazy val createDescription:Array[String] => Description[Unit] = args =>
-    Description.create(
-    display(
-      createMessage(
-        round(
-          ensureAmountIsPositive(
-            convertStringToInt(
-              prompt(
-                display(
-                  question(
-                    display(
-                      hyphens(
-                        args
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-    )
-   
+  private lazy val ignoreArgs: Array[String] => Unit = _ => ()
+
+//  lazy val createDescription:Array[String] => Description[Unit] = args =>
+//    Description.create(
+//    display(
+//      createMessage(
+//        round(
+//          ensureAmountIsPositive(
+//            convertStringToInt(
+//              prompt(
+//                display(
+//                  question(
+//                    display(
+//                      hyphens(
+//                        args
+//                      )
+//                    )
+//                  )
+//                )
+//              )
+//            )
+//          )
+//        )
+//      )
+//    )
+//    )
+
+  lazy val createDescription: Array[String] => Description[Unit]  =
+    ignoreArgs  `-->` hyphens  `-->` displayKleisli                                                         `>=>` 
+    question  `-->` displayKleisli                                                                          `>=>`  
+    promptKleisli                                                                                           `>=>` 
+    convertStringToInt `-->` ensureAmountIsPositive   `-->`round  `-->` createMessage  `-->` displayKleisli `>=>` 
+    Description.brokenCreate
 
 
-  private def hyphens(input: Any): String =
+
+  private lazy val hyphens: Any => String = _ =>
     "-" * 50
 
-  private def question(input: Any): String =
+  private lazy val question: Any => String = _ =>
     "Push cash"
 
-  private def display(input: Any): Unit =
+  private lazy val displayKleisli: Any => Description[Unit] = input => Description.create{
+    println(input)
+  }
+  
+  private lazy val display: Any => Unit = input =>
     println(input)
 
-  private def prompt(input: Any): String = "5"
+
+  private lazy val promptKleisli: Any => Description[String] = _ => Description.create("5")
+  private lazy val prompt: Any => String = _ => "5"
   //io.StdIn.readLine
 
-  private def convertStringToInt(input: String): Int =
+
+  private lazy val convertStringToInt: String => Int = input =>
     input.toInt
 
-  private def ensureAmountIsPositive(amount: Int): Int =
+  private lazy val ensureAmountIsPositive: Int => Int = amount =>
     if (amount < 1) 1
     else amount
 
-  @tailrec
-  private def round(amount: Int): Int =
+
+  private lazy val round: Int => Int = amount =>
     if (isDivisibleByHundred(amount)) amount
     else round(amount + 1)
 
-  private def isDivisibleByHundred(amount: Int): Boolean =
+  private lazy val isDivisibleByHundred: Int => Boolean = amount =>
     amount % 100 == 0
 
-  private def createMessage(balance: Int): String =
+  private lazy val createMessage: Int => String = balance =>
     s"You have balance $balance"
 
 
